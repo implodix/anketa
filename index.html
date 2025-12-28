@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Minecraft (Фикс физики)</title>
+    <title>3D Minecraft </title>
     <style>
         body { 
             margin: 0; 
             overflow: hidden; 
-            background: linear-gradient(180deg, #87CEEB 0%, #98D8E8 60%, #E0F6FF 100%);
             font-family: 'Courier New', monospace;
         }
         #info {
@@ -21,31 +20,35 @@
 </head>
 <body>
     <div id="info">
-        WASD: движение | Мышь: обзор | ЛКМ: блок | ПКМ: удалить | R: мир | Пробел: прыжок
-        <br><span style="color: #4CAF50;">✅ Физика исправлена!</span>
+        WASD: движение | Мышь: обзор | ЛКМ: блок | ПКМ: удалить | R: мир | Пробел: прыжок<br>
+        <span style="color: #4CAF50;">✅ Камера исправлена! 🔵 Синее небо!</span>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         // Сцена
         const scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x87CEEB, 10, 100); // Туман для атмосферы
+        
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setClearColor(0x87CEEB); // 🔵 Яркое синее небо
         document.body.appendChild(renderer.domElement);
 
-        // Игрок (исправленная физика)
+        // ✅ ИСПРАВЛЕННАЯ КАМЕРА
         const player = {
-            position: new THREE.Vector3(0, 25, 0), // Выше земли
+            position: new THREE.Vector3(0, 25, 0),
             velocity: new THREE.Vector3(0, 0, 0),
-            rotation: { x: 0, y: 0 },
+            rotation: { x: 0, y: 0 }, // Отдельный поворот камеры
             speed: 0.15,
             jumpPower: 0.25,
             grounded: false,
             height: 1.8,
-            radius: 0.3
+            radius: 0.3,
+            sensitivity: 0.002
         };
 
         // Мир
@@ -59,28 +62,48 @@
         const dirtMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
         const stoneMaterial = new THREE.MeshLambertMaterial({ color: 0x696969 });
 
-        // Свет
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-        scene.add(ambientLight);
-        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        // ✅ КРАСИВОЕ НЕБО
+        // Солнце
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1);
         sunLight.position.set(50, 50, 50);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048;
         sunLight.shadow.mapSize.height = 2048;
         scene.add(sunLight);
 
+        // Небесный свет
+        const ambientLight = new THREE.AmbientLight(0x87CEEB, 0.4);
+        scene.add(ambientLight);
+
+        // Облака (простые)
+        const cloudGeometry = new THREE.SphereGeometry(3, 8, 6);
+        const cloudMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0xffffff, 
+            transparent: true, 
+            opacity: 0.7 
+        });
+        for (let i = 0; i < 20; i++) {
+            const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
+            cloud.position.set(
+                (Math.random() - 0.5) * 80,
+                40 + Math.random() * 10,
+                (Math.random() - 0.5) * 80
+            );
+            cloud.scale.setScalar(0.3 + Math.random() * 0.5);
+            scene.add(cloud);
+        }
+
         // Raycaster
         const raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
         let isPointerLocked = false;
 
-        // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ КОЛЛИЗИЙ
         function checkCollision(pos, radius = player.radius) {
             const checkPositions = [
-                new THREE.Vector3(0, 0, 0), // центр
-                new THREE.Vector3(0.5, 0, 0), new THREE.Vector3(-0.5, 0, 0),
-                new THREE.Vector3(0, 0.5, 0), new THREE.Vector3(0, -0.5, 0),
-                new THREE.Vector3(0, 0, 0.5), new THREE.Vector3(0, 0, -0.5)
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(0.4, 0, 0), new THREE.Vector3(-0.4, 0, 0),
+                new THREE.Vector3(0, 0.4, 0), new THREE.Vector3(0, -0.4, 0),
+                new THREE.Vector3(0, 0, 0.4), new THREE.Vector3(0, 0, -0.4)
             ];
 
             for (let check of checkPositions) {
@@ -90,14 +113,11 @@
                 const blockZ = Math.floor(testPos.z);
                 
                 const key = `${blockX},${blockY},${blockZ}`;
-                if (world.has(key)) {
-                    return true; // Столкновение!
-                }
+                if (world.has(key)) return true;
             }
             return false;
         }
 
-        // Генерация мира
         function generateWorld() {
             blocks.forEach(block => scene.remove(block));
             blocks.clear();
@@ -125,7 +145,6 @@
             }
         }
 
-        // Клики
         function onMouseClick(event) {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -137,7 +156,7 @@
                 const intersect = intersects[0];
                 const pos = intersect.object.position;
 
-                if (event.button === 0) { // ЛКМ - поставить
+                if (event.button === 0) { // ЛКМ
                     const normal = intersect.face.normal;
                     const newPos = new THREE.Vector3(
                         Math.round(pos.x + normal.x * 0.5),
@@ -155,7 +174,7 @@
                         blocks.set(key, block);
                         world.set(key, 1);
                     }
-                } else if (event.button === 2) { // ПКМ - удалить
+                } else if (event.button === 2) { // ПКМ
                     const key = intersect.object.userData.key;
                     scene.remove(intersect.object);
                     blocks.delete(key);
@@ -164,7 +183,7 @@
             }
         }
 
-        // Управление
+        // ✅ ПЛАВНАЯ КАМЕРА
         const keys = {};
         document.addEventListener('keydown', (event) => {
             keys[event.code] = true;
@@ -172,68 +191,72 @@
         });
         document.addEventListener('keyup', (event) => keys[event.code] = false);
 
-        // Pointer Lock
         renderer.domElement.addEventListener('click', () => {
             renderer.domElement.requestPointerLock();
         });
+        
         document.addEventListener('pointerlockchange', () => {
             isPointerLocked = document.pointerLockElement === renderer.domElement;
         });
+
         document.addEventListener('mousemove', (event) => {
             if (!isPointerLocked) return;
-            player.rotation.y -= event.movementX * 0.002;
-            player.rotation.x -= event.movementY * 0.002;
+            
+            // ✅ ПЛАВНЫЙ ПОВОРОТ КАМЕРЫ
+            player.rotation.y -= event.movementX * player.sensitivity;
+            player.rotation.x -= event.movementY * player.sensitivity;
             player.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, player.rotation.x));
         });
+
         renderer.domElement.addEventListener('click', onMouseClick);
         renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 
-        // ✅ ОСНОВНОЙ ЦИКЛ С ФИЗИКОЙ
         function update() {
-            // Движение
+            // Движение (используем поворот камеры)
             const direction = new THREE.Vector3();
-            const frontVector = new THREE.Vector3(0, 0, -(keys['KeyW'] ? 1 : 0) + (keys['KeyS'] ? 1 : 0));
-            const sideVector = new THREE.Vector3(-(keys['KeyA'] ? 1 : 0) + (keys['KeyD'] ? 1 : 0), 0, 0);
+            const frontVector = new THREE.Vector3(0, 0, -1);
+            const sideVector = new THREE.Vector3(1, 0, 0);
             
-            camera.getWorldDirection(frontVector);
+            // Применяем поворот игрока
+            const quaternion = new THREE.Quaternion();
+            quaternion.setFromEuler(new THREE.Euler(0, player.rotation.y, 0));
+            frontVector.applyQuaternion(quaternion);
             frontVector.y = 0;
             frontVector.normalize();
-            sideVector.applyQuaternion(camera.quaternion);
+            
+            sideVector.applyQuaternion(quaternion);
             sideVector.y = 0;
             sideVector.normalize();
+
+            if (keys['KeyW']) direction.add(frontVector);
+            if (keys['KeyS']) direction.sub(frontVector);
+            if (keys['KeyA']) direction.sub(sideVector);
+            if (keys['KeyD']) direction.add(sideVector);
             
-            direction.add(frontVector.multiplyScalar(player.speed));
-            direction.add(sideVector.multiplyScalar(player.speed));
-            
+            direction.normalize().multiplyScalar(player.speed);
             player.velocity.x = direction.x;
             player.velocity.z = direction.z;
 
-            // Прыжок
+            // Прыжок и гравитация
             if (keys['Space'] && player.grounded) {
                 player.velocity.y = player.jumpPower;
                 player.grounded = false;
             }
-
-            // Гравитация
             player.velocity.y -= 0.015;
 
-            // ✅ ПРИМЕНЕНИЕ ФИЗИКИ ПО ОСЯМ
-            // X
+            // Коллизии
             const newX = player.position.x + player.velocity.x;
             if (!checkCollision(new THREE.Vector3(newX, player.position.y, player.position.z))) {
                 player.position.x = newX;
             }
 
-            // Z  
             const newZ = player.position.z + player.velocity.z;
             if (!checkCollision(new THREE.Vector3(player.position.x, player.position.y, newZ))) {
                 player.position.z = newZ;
             }
 
-            // Y (гравитация)
             const newY = player.position.y + player.velocity.y;
             const footY = newY - player.height + 0.1;
-            
             if (footY <= 0 || checkCollision(new THREE.Vector3(player.position.x, footY, player.position.z))) {
                 player.position.y = Math.floor(footY) + player.height;
                 player.velocity.y = 0;
@@ -242,10 +265,12 @@
                 player.position.y = newY;
             }
 
-            // Камера
+            // ✅ КАМЕРА ПРИВЯЗАНА К ИГРОКУ
             camera.position.copy(player.position);
-            camera.position.y += player.height - 0.2;
-            camera.rotation.set(player.rotation.x, player.rotation.y, 0);
+            camera.position.y += player.height * 0.9; // Глаза на уровне головы
+            camera.rotation.order = 'YXZ';
+            camera.rotation.x = player.rotation.x;
+            camera.rotation.y = player.rotation.y;
         }
 
         function animate() {
