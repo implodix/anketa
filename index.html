@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анкета знакомств - Найди свою пару</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #fff 0%, #ffeef8 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(255, 182, 193, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #ff69b4;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            text-shadow: 0 2px 4px rgba(255, 105, 180, 0.2);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ff1493;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #ffb6c1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ff69b4;
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+        }
+        textarea { resize: vertical; height: 100px; }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 105, 180, 0.4);
+        }
+        .heart { text-align: center; color: #ff69b4; font-size: 1.5em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💕 Анкета знакомств 💕</h1>
+        <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+            <label for="name">Имя:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="age">Возраст:</label>
+            <input type="number" id="age" name="age" min="18" max="100" required>
+
+            <label for="gender">Пол:</label>
+            <select id="gender" name="gender" required>
+                <option value="">Выберите</option>
+                <option value="мужской">Мужской</option>
+                <option value="женский">Женский</option>
+                <option value="другой">Другой</option>
+            </select>
+
+            <label for="city">Город:</label>
+            <input type="text" id="city" name="city" placeholder="Гомель, Минск..." required>
+
+            <label for="hobbies">Хобби (через запятую):</label>
+            <input type="text" id="hobbies" name="hobbies" placeholder="Minecraft, готовка, прогулки...">
+
+            <label for="about">О себе:</label>
+            <textarea id="about" name="about" placeholder="Расскажи о себе в 2-3 предложениях..."></textarea>
+
+            <label for="looking">Ищу:</label>
+            <textarea id="looking" name="looking" placeholder="Кого ищешь? Цели знакомства..."></textarea>
+
+            <label for="photo">Ссылка на фото (опционально):</label>
+            <input type="url" id="photo" name="photo" placeholder="https://example.com/photo.jpg">
+
+            <button type="submit">Отправить анкету 💖</button>
+        </form>
+        <div class="heart">Найди любовь уже сегодня!</div>
+    </div>
+</body>
+</html>
